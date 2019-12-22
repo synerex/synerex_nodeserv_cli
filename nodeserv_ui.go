@@ -7,6 +7,7 @@ import (
 	"os"
 	"log"
 	"fmt"
+	"strings"
 	"google.golang.org/grpc"
 	nodecapi "github.com/synerex/synerex_nodeserv_controlapi"
 )
@@ -34,7 +35,6 @@ var (
 
 
 
-// read server change requests like ProviderA -> ServerB
 func GetInput() {
 	for {
 		scanner := bufio.NewScanner(os.Stdin)
@@ -45,34 +45,75 @@ func GetInput() {
 			OutputCurrentSP()
 		} else if Input == "q" {
 			break
+		} else if strings.Contains(Input,"->") {
+			PrvSvr := strings.Split(Input, "->")
+			Provider := strings.TrimSpace(PrvSvr[0])
+			Server := strings.TrimSpace(PrvSvr[1])
+			SwitchServer(Provider,Server)
+		} else {
+			fmt.Printf("Wrong Input\n")
 		}
 
-		/*
-		PrvSvr := strings.Split(Input, "->")
-		Provider := strings.TrimSpace(PrvSvr[0])
-		Server := strings.TrimSpace(PrvSvr[1])
+	}
+}
 
-		ChangeSvrList = append(ChangeSvrList, ProviderConn{
-			Provider: Provider,
-			Server:   Server,
-		})
-		*/
+func SwitchServer(prvName, srvName string) {
+	var order nodecapi.Order
+	var prvInfo, srvInfo nodecapi.NodeInfo
+	var switchInfo nodecapi.SwitchInfo
+	var oswitchInfo nodecapi.Order_SwitchInfo
+
+	log.Printf("Switch Order %s -> %s\n", prvName, srvName)
+
+	prvInfo.NodeName = prvName
+	prvInfo.NodeType = nodecapi.NodeType_PROVIDER
+
+	srvInfo.NodeName = srvName
+	srvInfo.NodeType = nodecapi.NodeType_SERVER
+
+
+	order.OrderType = nodecapi.OrderType_SWITCH_SERVER
+	order.TargetNode = &prvInfo
+
+	switchInfo.SxServer = &srvInfo
+	oswitchInfo.SwitchInfo = &switchInfo
+	order.OrderInfo = &oswitchInfo
+
+	_ , err := client.ControlNodes( context.Background(), &order )
+	if err != nil {
+		log.Printf("Error on ControlNodes\n", err)
+		return
 	}
 }
 
 // Output Current Server Provider Maps
 func OutputCurrentSP() {
 	var filter nodecapi.NodeInfoFilter
+
 	filter.NodeType = nodecapi.NodeType_PROVIDER
-	nodeinfos , err := client.QueryNodeInfos( context.Background(), &filter )
+	prvinfos , err := client.QueryNodeInfos( context.Background(), &filter )
 	if err != nil {
 		log.Printf("Error on QueryNodeInfos\n", err)
 		return
 	}
-	
-	log.Printf("Current Server Provider Connections\n")
-	for _, ni := range nodeinfos.Infos {
-		log.Printf("Provider info %d %s connected to %d\n", ni.NodeId, ni.NodeName, ni.ServerId)
+
+	filter.NodeType = nodecapi.NodeType_SERVER
+	srvinfos , err := client.QueryNodeInfos( context.Background(), &filter )
+	if err != nil {
+		log.Printf("Error on QueryNodeInfos\n", err)
+		return
+	}
+
+	fmt.Printf("  Current Server Provider Connections\n")
+	for _, pi := range prvinfos.Infos {
+		srvName := ""
+		for _, si := range srvinfos.Infos {
+			if si.NodeId == pi.ServerId {
+				srvName = si.NodeName
+				break
+			}
+		}
+		fmt.Printf("  %s connected to %s\n", pi.NodeName, srvName)
 	}
 }
 
@@ -90,10 +131,10 @@ func main() {
 
 	client = nodecapi.NewNodeControlClient(conn)
 
-	fmt.Printf("Please input\n")
-	fmt.Printf("d : to display current Provider - Server connection\n")
-	fmt.Printf("q : to quit\n")
-	fmt.Printf("ProviderName -> ServerName : to change server\n")
+	fmt.Printf("  Please input\n")
+	fmt.Printf("  d : to display current Provider - Server connection\n")
+	fmt.Printf("  q : to quit\n")
+	fmt.Printf("  ProviderName -> ServerName : to change server\n")
 
 	GetInput()
 }
