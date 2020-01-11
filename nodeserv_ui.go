@@ -3,11 +3,9 @@ package main
 import (
 	"context"
 	"flag"
-	"bufio"
 	"os"
 	"log"
 	"fmt"
-	"strings"
 	"strconv"
 	"google.golang.org/grpc"
 	nodecapi "github.com/synerex/synerex_nodeserv_controlapi"
@@ -19,28 +17,6 @@ var (
 	conn   *grpc.ClientConn
 )
 
-
-func GetInput() {
-	for {
-		scanner := bufio.NewScanner(os.Stdin)
-		scanner.Scan()
-		Input := scanner.Text()
-
-		if Input == "d" {
-			OutputCurrentSP()
-		} else if Input == "q" {
-			break
-		} else if strings.Contains(Input,"->") {
-			PrvSvr := strings.Split(Input, "->")
-			Provider, _ := strconv.Atoi(strings.TrimSpace(PrvSvr[0]))
-			Server, _ := strconv.Atoi(strings.TrimSpace(PrvSvr[1]))
-			SwitchServer(int32(Provider),int32(Server))
-		} else {
-			fmt.Printf("Invalid Input\n")
-		}
-
-	}
-}
 
 func SwitchServer(prvId, srvId int32) {
 	var order nodecapi.Order
@@ -190,11 +166,13 @@ func OutputCurrentSP() {
 }
 
 func main() {
+	var err error
+	var Provider,Server int
+
 	flag.Parse()
 
 	var opts []grpc.DialOption
 	opts = append(opts, grpc.WithInsecure()) // insecure
-	var err error
 	conn, err = grpc.Dial(*nodesrv, opts...)
 	if err != nil {
 		log.Printf("fail to dial: %v", err)
@@ -203,10 +181,22 @@ func main() {
 
 	client = nodecapi.NewNodeControlClient(conn)
 
-	fmt.Printf("  Please input\n")
-	fmt.Printf("  d : to display Node information\n")
-	fmt.Printf("  q : to quit\n")
-	fmt.Printf("  ProviderID -> ServerID : to change server\n")
+	if flag.Arg(0) == "show" {
+		OutputCurrentSP()
+	} else if flag.Arg(0) == "change" {
+		Provider, err = strconv.Atoi(flag.Arg(1))
+		if err != nil {
+			fmt.Printf("  ProviderID is invalid\n")
+			os.Exit(0)
+		}
+		Server, err = strconv.Atoi(flag.Arg(2))
+		if err != nil {
+			fmt.Printf("  ServerID is invalid\n")
+			os.Exit(0)
+		}
+		SwitchServer(int32(Provider),int32(Server))
+	} else {
+		fmt.Printf("Invalid Argument\n")
+	}
 
-	GetInput()
 }
