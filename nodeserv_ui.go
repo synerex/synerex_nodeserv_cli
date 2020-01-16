@@ -196,7 +196,9 @@ func main() {
 		}
 		SwitchServer(int32(Provider),int32(Server))
 	} else {
-		fmt.Printf("Invalid Argument\n")
+		fmt.Printf("Usage\n")
+		fmt.Printf("1. show\n")
+		fmt.Printf("2. change [provider id] [server id]\n")
 	}
 
 }
