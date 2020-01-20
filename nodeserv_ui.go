@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"strconv"
 	"google.golang.org/grpc"
+	nodeapi "github.com/synerex/synerex_nodeapi"
 	nodecapi "github.com/synerex/synerex_nodeserv_controlapi"
 )
 
@@ -20,13 +21,13 @@ var (
 
 func SwitchServer(prvId, srvId int32) {
 	var order nodecapi.Order
-	var prvInfo, srvInfo nodecapi.NodeInfo
+	var prvInfo, srvInfo nodecapi.NodeControlInfo
 	var switchInfo nodecapi.SwitchInfo
 	var oswitchInfo nodecapi.Order_SwitchInfo
 
-	var filter nodecapi.NodeInfoFilter
+	var filter nodecapi.NodeControlFilter
 
-	filter.NodeType = nodecapi.NodeType_PROVIDER
+	filter.NodeType = nodeapi.NodeType_PROVIDER
 	nodeinfos , err := client.QueryNodeInfos( context.Background(), &filter )
 	if err != nil {
 		log.Printf("Error on QueryNodeInfos\n", err)
@@ -36,7 +37,7 @@ func SwitchServer(prvId, srvId int32) {
 	prvName := ""
 	for _, ni := range nodeinfos.Infos {
 		if ni.NodeId == prvId {
-			prvName = ni.NodeName
+			prvName = ni.NodeInfo.NodeName
 			break
 		}
 	}
@@ -45,7 +46,7 @@ func SwitchServer(prvId, srvId int32) {
 		return
 	}
 
-	filter.NodeType = nodecapi.NodeType_SERVER
+	filter.NodeType = nodeapi.NodeType_SERVER
 	nodeinfos , err = client.QueryNodeInfos( context.Background(), &filter )
 	if err != nil {
 		log.Printf("Error on QueryNodeInfos\n", err)
@@ -55,7 +56,7 @@ func SwitchServer(prvId, srvId int32) {
 	srvName := ""
 	for _, ni := range nodeinfos.Infos {
 		if ni.NodeId == srvId {
-			srvName = ni.NodeName
+			srvName = ni.NodeInfo.NodeName
 			break
 		}
 	}
@@ -67,10 +68,12 @@ func SwitchServer(prvId, srvId int32) {
 	fmt.Printf("  %d %s Switch Server to %d %s\n", prvId, prvName, srvId, srvName)
 
 	prvInfo.NodeId = prvId
-	prvInfo.NodeType = nodecapi.NodeType_PROVIDER
+	prvInfo.NodeInfo = &nodeapi.NodeInfo{}
+	prvInfo.NodeInfo.NodeType = nodeapi.NodeType_PROVIDER
 
 	srvInfo.NodeId = srvId
-	srvInfo.NodeType = nodecapi.NodeType_SERVER
+	srvInfo.NodeInfo = &nodeapi.NodeInfo{}
+	srvInfo.NodeInfo.NodeType = nodeapi.NodeType_SERVER
 
 
 	order.OrderType = nodecapi.OrderType_SWITCH_SERVER
@@ -89,9 +92,9 @@ func SwitchServer(prvId, srvId int32) {
 
 // Output Node Information
 func OutputCurrentSP() {
-	var filter nodecapi.NodeInfoFilter
+	var filter nodecapi.NodeControlFilter
 
-	filter.NodeType = nodecapi.NodeType_GATEWAY
+	filter.NodeType = nodeapi.NodeType_GATEWAY
 	nodeinfos , err := client.QueryNodeInfos( context.Background(), &filter )
 	if err != nil {
 		log.Printf("Error on QueryNodeInfos\n", err)
@@ -103,16 +106,16 @@ func OutputCurrentSP() {
 	for _, ni := range nodeinfos.Infos {
 		fmt.Printf("  %2d %-12.12s %-18.18s %-10.10s %3d %7d %-10.10s %d\n",
 				ni.NodeId,
-				ni.NodeName,
-				ni.GwInfo,
-				ni.NodePbaseVersion,
-				ni.WithNodeId,
-				ni.ClusterId,
-				ni.AreaId,
-				ni.ChannelTypes)
+				ni.NodeInfo.NodeName,
+				ni.NodeInfo.GwInfo,
+				ni.NodeInfo.NodePbaseVersion,
+				ni.NodeInfo.WithNodeId,
+				ni.NodeInfo.ClusterId,
+				ni.NodeInfo.AreaId,
+				ni.NodeInfo.ChannelTypes)
 	}
 
-	filter.NodeType = nodecapi.NodeType_SERVER
+	filter.NodeType = nodeapi.NodeType_SERVER
 	nodeinfos , err = client.QueryNodeInfos( context.Background(), &filter )
 	if err != nil {
 		log.Printf("Error on QueryNodeInfos\n", err)
@@ -125,16 +128,16 @@ func OutputCurrentSP() {
 	for _, ni := range nodeinfos.Infos {
 		fmt.Printf("  %2d %-12.12s %-18.18s %-10.10s %3d %7d %-10.10s %d\n",
 				ni.NodeId,
-				ni.NodeName,
-				ni.ServerInfo,
-				ni.NodePbaseVersion,
-				ni.WithNodeId,
-				ni.ClusterId,
-				ni.AreaId,
-				ni.ChannelTypes)
+				ni.NodeInfo.NodeName,
+				ni.NodeInfo.ServerInfo,
+				ni.NodeInfo.NodePbaseVersion,
+				ni.NodeInfo.WithNodeId,
+				ni.NodeInfo.ClusterId,
+				ni.NodeInfo.AreaId,
+				ni.NodeInfo.ChannelTypes)
 	}
 
-	filter.NodeType = nodecapi.NodeType_PROVIDER
+	filter.NodeType = nodeapi.NodeType_PROVIDER
 	nodeinfos , err = client.QueryNodeInfos( context.Background(), &filter )
 	if err != nil {
 		log.Printf("Error on QueryNodeInfos\n", err)
@@ -147,20 +150,20 @@ func OutputCurrentSP() {
 		srvName := ""
 		for _, si := range srvinfos.Infos {
 			if si.NodeId == ni.ServerId {
-				srvName = si.NodeName
+				srvName = si.NodeInfo.NodeName
 				break
 			}
 		}
 		fmt.Printf("  %2d %-12.12s%2d %-16.16s %-10.10s %3d %7d %-10.10s %d\n",
 				ni.NodeId,
-				ni.NodeName,
+				ni.NodeInfo.NodeName,
 				ni.ServerId,
 				srvName,
-				ni.NodePbaseVersion,
-				ni.WithNodeId,
-				ni.ClusterId,
-				ni.AreaId,
-				ni.ChannelTypes)
+				ni.NodeInfo.NodePbaseVersion,
+				ni.NodeInfo.WithNodeId,
+				ni.NodeInfo.ClusterId,
+				ni.NodeInfo.AreaId,
+				ni.NodeInfo.ChannelTypes)
 	}
 
 }
