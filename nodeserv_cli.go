@@ -18,6 +18,12 @@ var (
 	conn   *grpc.ClientConn
 )
 
+// for git versions
+var (
+	sha1ver   string // sha1 version used to build the program
+	buildTime string // when the executable was built
+	gitver    string // git release tag
+)
 
 func SwitchServer(prvId, srvId int32) {
 	var order nodecapi.Order
@@ -173,6 +179,9 @@ func main() {
 	var Provider,Server int
 
 	flag.Parse()
+
+	log.Printf("nodeserv_cli(%s) built %s sha1 %s",  gitver, buildTime, sha1ver)
+
 
 	var opts []grpc.DialOption
 	opts = append(opts, grpc.WithInsecure()) // insecure
