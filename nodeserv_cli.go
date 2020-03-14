@@ -134,13 +134,14 @@ func OutputCurrentSP() {
 	srvinfos := nodeinfos
 
 	fmt.Printf("\n  SERVER\n")
-	fmt.Printf("  ID Name         ServerInfo         NodePBVer With Cluster Area       ChannelTypes\n")
+	fmt.Printf("  ID Name         ServerInfo       NodePBVer BinVer With Cluster Area       ChannelTypes\n")
 	for _, ni := range nodeinfos.Infos {
-		fmt.Printf("  %2d %-12.12s %-18.18s %-10.10s %3d %7d %-10.10s %d\n",
+		fmt.Printf("  %2d %-12.12s %-16.16s %-7.7s %-7.7s %3d %7d %-10.10s %d\n",
 			ni.NodeId,
 			ni.NodeInfo.NodeName,
 			ni.NodeInfo.ServerInfo,
 			ni.NodeInfo.NodePbaseVersion,
+			ni.NodeInfo.BinVersion,
 			ni.NodeInfo.WithNodeId,
 			ni.NodeInfo.ClusterId,
 			ni.NodeInfo.AreaId,
@@ -155,7 +156,7 @@ func OutputCurrentSP() {
 	}
 
 	fmt.Printf("\n  PROVIDER\n")
-	fmt.Printf("  ID Name         ConnectServer      NodePBVer BinVer With Clus Area Arg LastSeen  ChannelTypes\n")
+	fmt.Printf("  ID Name         ConnectServer NodePBVer BinVer With Clus Area Arg LastSeen  ChannelTypes\n")
 	for _, ni := range nodeinfos.Infos {
 		srvName := ""
 		for _, si := range srvinfos.Infos {
@@ -165,7 +166,7 @@ func OutputCurrentSP() {
 			}
 		}
 		timeStampStr := ptypes.TimestampString(ni.NodeInfo.LastAliveTime)
-		fmt.Printf("  %2d %-12.12s%2d %-16.16s %-6.6s %-6.6s %3d %3d  %-10.10s %d\n",
+		fmt.Printf("  %2d %-12.12s%2d %-12.12s %-6.6s %-7.7s %3d %3d %-10.10s %s %s %d\n",
 			ni.NodeId,
 			ni.NodeInfo.NodeName,
 			ni.ServerId,
