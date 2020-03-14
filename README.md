@@ -1,17 +1,17 @@
-# synerex_nodeserv_ui
+# synerex_nodeserv_cli
 
-Control UI for Synerex Node Server
+Control CLI for Synerex Node Server
 
 # usage
 
 - display node info
 
 ``` shell
-.\nodeserv_ui show
+.\nodeserv_cli show
 ```
 
 - order a provider to change synerex server 
 
 ``` shell
-.\nodeserv_ui change [provider id] [server id]
+.\nodeserv_cli change [provider id] [server id]
 ```
