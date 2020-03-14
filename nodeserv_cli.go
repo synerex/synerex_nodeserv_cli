@@ -3,22 +3,22 @@ package main
 import (
 	"context"
 	"flag"
-	"os"
-	"log"
 	"fmt"
-	"strconv"
-	"strings"	
-	"google.golang.org/grpc"
 	nodeapi "github.com/synerex/synerex_nodeapi"
 	nodecapi "github.com/synerex/synerex_nodeserv_controlapi"
+	"google.golang.org/grpc"
+	"log"
+	"os"
+	"strconv"
+	"strings"
 )
 
 var (
-	nodesrv         = flag.String("nodesrv", "127.0.0.1:9990", "Node Server adderess and port")
-	show         = flag.Bool("show",true, "Show Nodeserv information")
-	sxmove          = flag.String("sxmove","", "Move provider to different synerex sever [provier id],[synerex id]")
-	client nodecapi.NodeControlClient
-	conn   *grpc.ClientConn
+	nodesrv = flag.String("nodesrv", "127.0.0.1:9990", "Node Server adderess and port")
+	show    = flag.Bool("show", true, "Show Nodeserv information")
+	sxmove  = flag.String("sxmove", "", "Move provider to different synerex sever [provier id],[synerex id]")
+	client  nodecapi.NodeControlClient
+	conn    *grpc.ClientConn
 )
 
 // for git versions
@@ -37,7 +37,7 @@ func SwitchServer(prvId, srvId int32) {
 	var filter nodecapi.NodeControlFilter
 
 	filter.NodeType = nodeapi.NodeType_PROVIDER
-	nodeinfos , err := client.QueryNodeInfos( context.Background(), &filter )
+	nodeinfos, err := client.QueryNodeInfos(context.Background(), &filter)
 	if err != nil {
 		log.Printf("Error on QueryNodeInfos\n", err)
 		return
@@ -56,7 +56,7 @@ func SwitchServer(prvId, srvId int32) {
 	}
 
 	filter.NodeType = nodeapi.NodeType_SERVER
-	nodeinfos , err = client.QueryNodeInfos( context.Background(), &filter )
+	nodeinfos, err = client.QueryNodeInfos(context.Background(), &filter)
 	if err != nil {
 		log.Printf("Error on QueryNodeInfos\n", err)
 		return
@@ -84,7 +84,6 @@ func SwitchServer(prvId, srvId int32) {
 	srvInfo.NodeInfo = &nodeapi.NodeInfo{}
 	srvInfo.NodeInfo.NodeType = nodeapi.NodeType_SERVER
 
-
 	order.OrderType = nodecapi.OrderType_SWITCH_SERVER
 	order.TargetNode = &prvInfo
 
@@ -92,7 +91,7 @@ func SwitchServer(prvId, srvId int32) {
 	oswitchInfo.SwitchInfo = &switchInfo
 	order.OrderInfo = &oswitchInfo
 
-	_ , err = client.ControlNodes( context.Background(), &order )
+	_, err = client.ControlNodes(context.Background(), &order)
 	if err != nil {
 		log.Printf("Error on ControlNodes\n", err)
 		return
@@ -104,7 +103,7 @@ func OutputCurrentSP() {
 	var filter nodecapi.NodeControlFilter
 
 	filter.NodeType = nodeapi.NodeType_GATEWAY
-	nodeinfos , err := client.QueryNodeInfos( context.Background(), &filter )
+	nodeinfos, err := client.QueryNodeInfos(context.Background(), &filter)
 	if err != nil {
 		log.Printf("Error on QueryNodeInfos\n", err)
 		return
@@ -114,18 +113,18 @@ func OutputCurrentSP() {
 	fmt.Printf("  ID Name         GateWayInfo        NodePBVer With Cluster Area       ChannelTypes\n")
 	for _, ni := range nodeinfos.Infos {
 		fmt.Printf("  %2d %-12.12s %-18.18s %-10.10s %3d %7d %-10.10s %d\n",
-				ni.NodeId,
-				ni.NodeInfo.NodeName,
-				ni.NodeInfo.GwInfo,
-				ni.NodeInfo.NodePbaseVersion,
-				ni.NodeInfo.WithNodeId,
-				ni.NodeInfo.ClusterId,
-				ni.NodeInfo.AreaId,
-				ni.NodeInfo.ChannelTypes)
+			ni.NodeId,
+			ni.NodeInfo.NodeName,
+			ni.NodeInfo.GwInfo,
+			ni.NodeInfo.NodePbaseVersion,
+			ni.NodeInfo.WithNodeId,
+			ni.NodeInfo.ClusterId,
+			ni.NodeInfo.AreaId,
+			ni.NodeInfo.ChannelTypes)
 	}
 
 	filter.NodeType = nodeapi.NodeType_SERVER
-	nodeinfos , err = client.QueryNodeInfos( context.Background(), &filter )
+	nodeinfos, err = client.QueryNodeInfos(context.Background(), &filter)
 	if err != nil {
 		log.Printf("Error on QueryNodeInfos\n", err)
 		return
@@ -136,18 +135,18 @@ func OutputCurrentSP() {
 	fmt.Printf("  ID Name         ServerInfo         NodePBVer With Cluster Area       ChannelTypes\n")
 	for _, ni := range nodeinfos.Infos {
 		fmt.Printf("  %2d %-12.12s %-18.18s %-10.10s %3d %7d %-10.10s %d\n",
-				ni.NodeId,
-				ni.NodeInfo.NodeName,
-				ni.NodeInfo.ServerInfo,
-				ni.NodeInfo.NodePbaseVersion,
-				ni.NodeInfo.WithNodeId,
-				ni.NodeInfo.ClusterId,
-				ni.NodeInfo.AreaId,
-				ni.NodeInfo.ChannelTypes)
+			ni.NodeId,
+			ni.NodeInfo.NodeName,
+			ni.NodeInfo.ServerInfo,
+			ni.NodeInfo.NodePbaseVersion,
+			ni.NodeInfo.WithNodeId,
+			ni.NodeInfo.ClusterId,
+			ni.NodeInfo.AreaId,
+			ni.NodeInfo.ChannelTypes)
 	}
 
 	filter.NodeType = nodeapi.NodeType_PROVIDER
-	nodeinfos , err = client.QueryNodeInfos( context.Background(), &filter )
+	nodeinfos, err = client.QueryNodeInfos(context.Background(), &filter)
 	if err != nil {
 		log.Printf("Error on QueryNodeInfos\n", err)
 		return
@@ -164,27 +163,26 @@ func OutputCurrentSP() {
 			}
 		}
 		fmt.Printf("  %2d %-12.12s%2d %-16.16s %-10.10s %3d %7d %-10.10s %d\n",
-				ni.NodeId,
-				ni.NodeInfo.NodeName,
-				ni.ServerId,
-				srvName,
-				ni.NodeInfo.NodePbaseVersion,
-				ni.NodeInfo.WithNodeId,
-				ni.NodeInfo.ClusterId,
-				ni.NodeInfo.AreaId,
-				ni.NodeInfo.ChannelTypes)
+			ni.NodeId,
+			ni.NodeInfo.NodeName,
+			ni.ServerId,
+			srvName,
+			ni.NodeInfo.NodePbaseVersion,
+			ni.NodeInfo.WithNodeId,
+			ni.NodeInfo.ClusterId,
+			ni.NodeInfo.AreaId,
+			ni.NodeInfo.ChannelTypes)
 	}
 
 }
 
 func main() {
 	var err error
-	var Provider,Server int
+	var Provider, Server int
 
 	flag.Parse()
 
-	log.Printf("nodeserv_cli(%s) built %s sha1 %s",  gitver, buildTime, sha1ver)
-
+	log.Printf("nodeserv_cli(%s) built %s sha1 %s", gitver, buildTime, sha1ver)
 
 	var opts []grpc.DialOption
 	opts = append(opts, grpc.WithInsecure()) // insecure
@@ -196,11 +194,9 @@ func main() {
 
 	client = nodecapi.NewNodeControlClient(conn)
 
-	if *show {
-		OutputCurrentSP()	
-	} else if *sxmove != "" {
-	  //
-		ids := strings.Split(*sxmove,",")
+	if *sxmove != "" {
+		//
+		ids := strings.Split(*sxmove, ",")
 		if len(ids) != 2 {
 			log.Printf("Please specify [provider id],[synerex id]")
 			os.Exit(1)
@@ -216,7 +212,8 @@ func main() {
 			fmt.Printf("  ServerID is invalid\n")
 			os.Exit(0)
 		}
-		SwitchServer(int32(Provider),int32(Server))
-	} 
-	
+		SwitchServer(int32(Provider), int32(Server))
+	} else if *show {
+		OutputCurrentSP()
+	}
 }
