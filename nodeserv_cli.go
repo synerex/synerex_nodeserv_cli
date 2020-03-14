@@ -7,13 +7,16 @@ import (
 	"log"
 	"fmt"
 	"strconv"
+	"strings"	
 	"google.golang.org/grpc"
 	nodeapi "github.com/synerex/synerex_nodeapi"
 	nodecapi "github.com/synerex/synerex_nodeserv_controlapi"
 )
 
 var (
-	nodesrv         = flag.String("nodesrv", "127.0.0.1:9990", "Node ID Server")
+	nodesrv         = flag.String("nodesrv", "127.0.0.1:9990", "Node Server adderess and port")
+	show         = flag.Bool("show",true, "Show Nodeserv information")
+	sxmove          = flag.String("sxmove","", "Move provider to different synerex sever [provier id],[synerex id]")
 	client nodecapi.NodeControlClient
 	conn   *grpc.ClientConn
 )
@@ -193,24 +196,27 @@ func main() {
 
 	client = nodecapi.NewNodeControlClient(conn)
 
-	if flag.Arg(0) == "show" {
-		OutputCurrentSP()
-	} else if flag.Arg(0) == "change" {
-		Provider, err = strconv.Atoi(flag.Arg(1))
+	if *show {
+		OutputCurrentSP()	
+	} else if *sxmove != "" {
+	  //
+		ids := strings.Split(*sxmove,",")
+		if len(ids) != 2 {
+			log.Printf("Please specify [provider id],[synerex id]")
+			os.Exit(1)
+		}
+
+		Provider, err = strconv.Atoi(ids[0])
 		if err != nil {
 			fmt.Printf("  ProviderID is invalid\n")
 			os.Exit(0)
 		}
-		Server, err = strconv.Atoi(flag.Arg(2))
+		Server, err = strconv.Atoi(ids[1])
 		if err != nil {
 			fmt.Printf("  ServerID is invalid\n")
 			os.Exit(0)
 		}
 		SwitchServer(int32(Provider),int32(Server))
-	} else {
-		fmt.Printf("Usage\n")
-		fmt.Printf("1. show\n")
-		fmt.Printf("2. change [provider id] [server id]\n")
-	}
-
+	} 
+	
 }
